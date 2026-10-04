@@ -6,7 +6,8 @@
 
     <title>URL Shortener</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
 </head>
 
 <body>
@@ -36,7 +37,81 @@
 
     </div>
 
-    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        console.log("URL Shortener JavaScript loaded");
+
+        const form = document.getElementById("urlForm");
+
+        form.addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            console.log("Form submitted");
+
+            const urlInput = document.getElementById("urlInput");
+            const result = document.getElementById("result");
+
+            const url = urlInput.value.trim();
+
+            console.log("URL:", url);
+
+            if (!url) {
+                result.textContent = "Please enter a URL.";
+                result.style.color = "red";
+                return;
+            }
+
+            result.textContent = "Creating short URL...";
+            result.style.color = "black";
+
+            try {
+
+                console.log("Sending POST request...");
+
+                const response = await fetch("/shorten", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        url: url
+                    })
+                });
+
+                console.log("Response status:", response.status);
+
+                const data = await response.json();
+
+                console.log("Server response:", data);
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "Something went wrong"
+                    );
+                }
+
+                result.innerHTML = `
+                    <p>Your shortened URL:</p>
+
+                    <a
+                        href="${data.short_url}"
+                        target="_blank"
+                    >
+                        ${data.short_url}
+                    </a>
+                `;
+
+                result.style.color = "green";
+
+            } catch (error) {
+
+                console.error("ERROR:", error);
+
+                result.textContent = error.message;
+                result.style.color = "red";
+            }
+        });
+    </script>
 
 </body>
 </html>
