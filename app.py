@@ -1,113 +1,101 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect
 import sqlite3
 import string
-import random
+import secrets
 
 app = Flask(__name__)
 
 DATABASE = "urls.db"
 
 
-def get_db_connection():
-    connection = sqlite3.connect(DATABASE)
-    connection.row_factory = sqlite3.Row
-    return connection
+def generate_code(length=6):
+    characters = string.ascii_letters + string.digits
+    return ''.join(secrets.choice(characters) for _ in range(length))
 
 
-def init_db():
-    connection = sqlite3.connect(DATABASE)
+def get_connection():
+    return sqlite3.connect(DATABASE)
 
-    connection.execute("""
+
+def create_table():
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
         CREATE TABLE IF NOT EXISTS urls (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             original_url TEXT NOT NULL,
-            short_code TEXT UNIQUE NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            clicks INTEGER DEFAULT 0
+            short_code TEXT UNIQUE NOT NULL
         )
     """)
 
-    connection.commit()
-    connection.close()
-
-
-def generate_short_code(length=6):
-    characters = string.ascii_letters + string.digits
-    return ''.join(random.choices(characters, k=length))
+    conn.commit()
+    conn.close()
 
 
 @app.route("/")
 def home():
-    return "URL Shortener API is running!"
+    return render_template("index.html")
 
 
-@app.route("/api/shorten", methods=["POST"])
-def shorten_url():
-
+@app.route("/shorten", methods=["POST"])
+def shorten():
     data = request.get_json()
 
     if not data or "url" not in data:
-        return jsonify({
-            "error": "URL is required"
-        }), 400
+        return jsonify({"error": "URL is required"}), 400
 
-    original_url = data["url"]
+    original_url = data["url"].strip()
 
-    connection = get_db_connection()
+    if not original_url.startswith(("http://", "https://")):
+        return jsonify({"error": "Invalid URL"}), 400
 
-    short_code = generate_short_code()
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    while connection.execute(
-        "SELECT id FROM urls WHERE short_code = ?",
-        (short_code,)
-    ).fetchone():
+    while True:
+        short_code = generate_code()
 
-        short_code = generate_short_code()
+        cursor.execute(
+            "SELECT id FROM urls WHERE short_code = ?",
+            (short_code,)
+        )
 
-    connection.execute(
-        """
-        INSERT INTO urls (original_url, short_code)
-        VALUES (?, ?)
-        """,
+        if cursor.fetchone() is None:
+            break
+
+    cursor.execute(
+        "INSERT INTO urls (original_url, short_code) VALUES (?, ?)",
         (original_url, short_code)
     )
 
-    connection.commit()
-    connection.close()
+    conn.commit()
+    conn.close()
 
     return jsonify({
-        "original_url": original_url,
-        "short_code": short_code,
         "short_url": f"http://127.0.0.1:5000/{short_code}"
-    }), 201
+    })
+
+
 @app.route("/<short_code>")
-def redirect_to_url(short_code):
+def redirect_url(short_code):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-    connection = get_db_connection()
-
-    url = connection.execute(
+    cursor.execute(
         "SELECT original_url FROM urls WHERE short_code = ?",
-        (short_code,)
-    ).fetchone()
-
-    if url is None:
-        connection.close()
-
-        return jsonify({
-            "error": "Short URL not found"
-        }), 404
-
-    connection.execute(
-        "UPDATE urls SET clicks = clicks + 1 WHERE short_code = ?",
         (short_code,)
     )
 
-    connection.commit()
-    connection.close()
+    result = cursor.fetchone()
+    conn.close()
 
-    return redirect(url["original_url"])
+    if result:
+        return redirect(result[0])
+
+    return "Short URL not found", 404
 
 
 if __name__ == "__main__":
-    init_db()
+    create_table()
     app.run(debug=True)
