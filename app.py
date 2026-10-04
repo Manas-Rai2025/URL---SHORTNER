@@ -37,7 +37,6 @@ def create_table():
 def home():
     return render_template("index.html")
 
-
 @app.route("/shorten", methods=["POST"])
 def shorten():
     data = request.get_json()
@@ -50,19 +49,18 @@ def shorten():
     if not original_url.startswith(("http://", "https://")):
         return jsonify({"error": "Invalid URL"}), 400
 
-    conn = get_connection()
+    short_code = generate_code()
+
+    conn = sqlite3.connect("urls.db")
     cursor = conn.cursor()
 
-    while True:
-        short_code = generate_code()
-
-        cursor.execute(
-            "SELECT id FROM urls WHERE short_code = ?",
-            (short_code,)
+    cursor.execute("""
+        CREATE TABLE IF NOT EXISTS urls (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            original_url TEXT NOT NULL,
+            short_code TEXT UNIQUE NOT NULL
         )
-
-        if cursor.fetchone() is None:
-            break
+    """)
 
     cursor.execute(
         "INSERT INTO urls (original_url, short_code) VALUES (?, ?)",
@@ -73,7 +71,7 @@ def shorten():
     conn.close()
 
     return jsonify({
-        "short_url": request.host_url + short_code
+        "short_url": f"{request.host_url}{short_code}"
     })
 
 
