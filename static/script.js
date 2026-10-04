@@ -1,30 +1,16 @@
-console.log("URL Shortener JavaScript loaded");
-
 const form = document.getElementById("urlForm");
 
-if (!form) {
-    console.error("Form not found!");
-} else {
-
-    form.addEventListener("submit", function(event) {
-        event.preventDefault();
-
-        console.log("Form submitted");
-
-        shortenURL();
-    });
-}
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+    shortenURL();
+});
 
 async function shortenURL() {
-
-    console.log("shortenURL() started");
 
     const urlInput = document.getElementById("urlInput");
     const result = document.getElementById("result");
 
     const url = urlInput.value.trim();
-
-    console.log("URL:", url);
 
     if (!url) {
         result.textContent = "Please enter a URL.";
@@ -32,9 +18,10 @@ async function shortenURL() {
         return;
     }
 
-    try {
+    result.textContent = "Generating short URL...";
+    result.style.color = "black";
 
-        console.log("Sending POST request...");
+    try {
 
         const response = await fetch("/shorten", {
             method: "POST",
@@ -46,11 +33,7 @@ async function shortenURL() {
             })
         });
 
-        console.log("Response status:", response.status);
-
         const data = await response.json();
-
-        console.log("Server response:", data);
 
         if (!response.ok) {
             throw new Error(data.error || "Something went wrong");
@@ -59,18 +42,32 @@ async function shortenURL() {
         result.innerHTML = `
             <p>Your Short URL:</p>
 
-            <a href="${data.short_url}" target="_blank">
-                ${data.short_url}
-            </a>
+            <div class="short-url-box">
+                <a href="${data.short_url}" target="_blank">
+                    ${data.short_url}
+                </a>
+
+                <button type="button" onclick="copyURL('${data.short_url}')">
+                    Copy
+                </button>
+            </div>
         `;
 
         result.style.color = "green";
 
     } catch (error) {
 
-        console.error("ERROR:", error);
+        console.error("Error:", error);
 
         result.textContent = error.message;
         result.style.color = "red";
     }
+}
+
+
+function copyURL(url) {
+
+    navigator.clipboard.writeText(url);
+
+    alert("Short URL copied!");
 }
