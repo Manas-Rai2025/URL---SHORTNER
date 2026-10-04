@@ -73,7 +73,7 @@ def shorten():
     conn.close()
 
     return jsonify({
-        "short_url": f"http://127.0.0.1:5000/{short_code}"
+        "short_url": request.host_url + short_code
     })
 
 
@@ -96,6 +96,8 @@ def redirect_url(short_code):
     return "Short URL not found", 404
 
 
+create_table()
+
+
 if __name__ == "__main__":
-    create_table()
     app.run(debug=True)
