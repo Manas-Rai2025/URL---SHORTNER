@@ -1,15 +1,30 @@
+console.log("URL Shortener JavaScript loaded");
+
 const form = document.getElementById("urlForm");
 
-form.addEventListener("submit", function(event) {
-    event.preventDefault();
-    shortenURL();
-});
+if (!form) {
+    console.error("Form not found!");
+} else {
+
+    form.addEventListener("submit", function(event) {
+        event.preventDefault();
+
+        console.log("Form submitted");
+
+        shortenURL();
+    });
+}
 
 async function shortenURL() {
+
+    console.log("shortenURL() started");
+
     const urlInput = document.getElementById("urlInput");
     const result = document.getElementById("result");
 
     const url = urlInput.value.trim();
+
+    console.log("URL:", url);
 
     if (!url) {
         result.textContent = "Please enter a URL.";
@@ -18,6 +33,9 @@ async function shortenURL() {
     }
 
     try {
+
+        console.log("Sending POST request...");
+
         const response = await fetch("/shorten", {
             method: "POST",
             headers: {
@@ -28,7 +46,11 @@ async function shortenURL() {
             })
         });
 
+        console.log("Response status:", response.status);
+
         const data = await response.json();
+
+        console.log("Server response:", data);
 
         if (!response.ok) {
             throw new Error(data.error || "Something went wrong");
@@ -36,6 +58,7 @@ async function shortenURL() {
 
         result.innerHTML = `
             <p>Your Short URL:</p>
+
             <a href="${data.short_url}" target="_blank">
                 ${data.short_url}
             </a>
@@ -44,6 +67,9 @@ async function shortenURL() {
         result.style.color = "green";
 
     } catch (error) {
+
+        console.error("ERROR:", error);
+
         result.textContent = error.message;
         result.style.color = "red";
     }
