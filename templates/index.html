@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>URL Shortener</title>
+    <title>Shortly — URL Shortener</title>
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
@@ -12,106 +12,119 @@
 
 <body>
 
-    <div class="container">
-
-        <h1>URL Shortener</h1>
-
-        <p>Convert your long URLs into short and shareable links.</p>
-
-        <form id="urlForm">
-
-            <input
-                type="url"
-                id="urlInput"
-                placeholder="Enter your long URL"
-                required
-            >
-
-            <button type="submit">
-                Shorten URL
-            </button>
-
-        </form>
-
-        <div id="result"></div>
-
+    <div class="background">
+        <div class="glow glow-one"></div>
+        <div class="glow glow-two"></div>
     </div>
 
-    <script>
-        console.log("URL Shortener JavaScript loaded");
+    <header class="navbar">
+        <div class="logo">
+            <div class="logo-icon">S</div>
+            <span>Shortly</span>
+        </div>
 
-        const form = document.getElementById("urlForm");
+        <div class="nav-badge">
+            <span class="status-dot"></span>
+            Live & Ready
+        </div>
+    </header>
 
-        form.addEventListener("submit", async function(event) {
 
-            event.preventDefault();
+    <main class="main-container">
 
-            console.log("Form submitted");
+        <section class="hero">
 
-            const urlInput = document.getElementById("urlInput");
-            const result = document.getElementById("result");
+            <div class="badge">
+                ✦ SIMPLE • FAST • SHAREABLE
+            </div>
 
-            const url = urlInput.value.trim();
+            <h1>
+                Make your links
+                <span>short & powerful.</span>
+            </h1>
 
-            console.log("URL:", url);
+            <p class="subtitle">
+                Transform long URLs into clean, memorable and
+                shareable links in seconds.
+            </p>
 
-            if (!url) {
-                result.textContent = "Please enter a URL.";
-                result.style.color = "red";
-                return;
-            }
 
-            result.textContent = "Creating short URL...";
-            result.style.color = "black";
+            <div class="shortener-card">
 
-            try {
+                <form id="urlForm">
 
-                console.log("Sending POST request...");
+                    <div class="input-wrapper">
 
-                const response = await fetch("/shorten", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        url: url
-                    })
-                });
+                        <span class="link-icon">🔗</span>
 
-                console.log("Response status:", response.status);
+                        <input
+                            type="url"
+                            id="urlInput"
+                            placeholder="Paste your long URL here..."
+                            autocomplete="off"
+                            required
+                        >
 
-                const data = await response.json();
+                        <button type="submit" id="shortenButton">
+                            <span id="buttonText">Shorten URL</span>
+                            <span id="loader" class="loader hidden"></span>
+                        </button>
 
-                console.log("Server response:", data);
+                    </div>
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.error || "Something went wrong"
-                    );
-                }
+                </form>
 
-                result.innerHTML = `
-                    <p>Your shortened URL:</p>
 
-                    <a
-                        href="${data.short_url}"
-                        target="_blank"
-                    >
-                        ${data.short_url}
-                    </a>
-                `;
+                <div id="result" class="result hidden"></div>
 
-                result.style.color = "green";
+            </div>
 
-            } catch (error) {
 
-                console.error("ERROR:", error);
+            <div class="features">
 
-                result.textContent = error.message;
-                result.style.color = "red";
-            }
-        });
-    </script>
+                <div class="feature">
+                    <div class="feature-icon">⚡</div>
+                    <div>
+                        <h3>Lightning Fast</h3>
+                        <p>Create short links instantly.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">🔒</div>
+                    <div>
+                        <h3>Simple & Secure</h3>
+                        <p>Your URLs are safely stored.</p>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <div class="feature-icon">↗</div>
+                    <div>
+                        <h3>Easy to Share</h3>
+                        <p>Clean links for everywhere.</p>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <footer>
+        <p>
+            Built with <span>♥</span> using Flask & SQLite
+        </p>
+
+        <p class="copyright">
+            © 2026 Shortly
+        </p>
+    </footer>
+
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 
 </body>
 </html>
