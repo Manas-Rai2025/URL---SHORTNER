@@ -1,7 +1,8 @@
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect
 import sqlite3
 import string
 import random
+import os
 
 app = Flask(__name__)
 
@@ -37,7 +38,13 @@ def home():
 @app.route("/shorten", methods=["POST"])
 def shorten():
 
-    data = request.get_json()
+    print("===================================")
+    print("SHORTEN REQUEST RECEIVED")
+    print("===================================")
+
+    data = request.get_json(silent=True)
+
+    print("Received data:", data)
 
     if not data or "url" not in data:
         return jsonify({
@@ -45,6 +52,8 @@ def shorten():
         }), 400
 
     original_url = data["url"].strip()
+
+    print("Original URL:", original_url)
 
     if not original_url.startswith(("http://", "https://")):
         return jsonify({
@@ -54,8 +63,9 @@ def shorten():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
 
-    # Generate a unique short code
+    # Generate unique short code
     while True:
+
         short_code = generate_code()
 
         cursor.execute(
@@ -79,16 +89,23 @@ def shorten():
     conn.close()
 
     # IMPORTANT:
-    # Generate the URL using the current deployed domain
-    short_url = url_for(
-        "redirect_url",
-        short_code=short_code,
-        _external=True
-    )
+    # Use Render's public URL when deployed
+    base_url = os.environ.get("RENDER_EXTERNAL_URL")
+
+    if not base_url:
+        base_url = request.host_url.rstrip("/")
+
+    base_url = base_url.rstrip("/")
+
+    short_url = base_url + "/" + short_code
+
+    print("Base URL:", base_url)
+    print("Short code:", short_code)
+    print("FINAL SHORT URL:", short_url)
 
     return jsonify({
         "short_url": short_url
-    })
+    }), 200
 
 
 @app.route("/<short_code>")
@@ -116,13 +133,15 @@ def redirect_url(short_code):
     return "Short URL not found", 404
 
 
-# Initialize database when application starts
 init_db()
 
 
 if __name__ == "__main__":
+
+    port = int(os.environ.get("PORT", 5000))
+
     app.run(
         host="0.0.0.0",
-        port=5000,
+        port=port,
         debug=True
     )
