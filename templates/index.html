@@ -8,34 +8,48 @@
 
     <link rel="stylesheet"
           href="{{ url_for('static', filename='style.css') }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet">
 </head>
 
 <body>
 
     <div class="background">
-        <div class="glow glow-one"></div>
-        <div class="glow glow-two"></div>
+        <div class="orb orb-one"></div>
+        <div class="orb orb-two"></div>
+        <div class="grid"></div>
     </div>
 
-    <header class="navbar">
-        <div class="logo">
-            <div class="logo-icon">S</div>
-            <span>Shortly</span>
+    <nav class="navbar">
+
+        <div class="brand">
+            <div class="brand-icon">S</div>
+
+            <div>
+                <span class="brand-name">Shortly</span>
+                <span class="brand-tag">URL SHORTENER</span>
+            </div>
         </div>
 
-        <div class="nav-badge">
+        <div class="status">
             <span class="status-dot"></span>
-            Live & Ready
+            <span>System Online</span>
         </div>
-    </header>
+
+    </nav>
 
 
-    <main class="main-container">
+    <main class="main">
 
         <section class="hero">
 
             <div class="badge">
-                ✦ SIMPLE • FAST • SHAREABLE
+                <span>✦</span>
+                SIMPLE • FAST • SECURE
             </div>
 
             <h1>
@@ -51,59 +65,79 @@
 
             <div class="shortener-card">
 
-                <form id="urlForm">
+                <div class="input-wrapper">
 
-                    <div class="input-wrapper">
+                    <span class="link-icon">↗</span>
 
-                        <span class="link-icon">🔗</span>
+                    <input
+                        type="url"
+                        id="urlInput"
+                        placeholder="Paste your long URL here..."
+                        autocomplete="off"
+                    >
 
-                        <input
-                            type="url"
-                            id="urlInput"
-                            placeholder="Paste your long URL here..."
-                            autocomplete="off"
-                            required
-                        >
+                </div>
 
-                        <button type="submit" id="shortenButton">
-                            <span id="buttonText">Shorten URL</span>
-                            <span id="loader" class="loader hidden"></span>
-                        </button>
+                <button id="shortenButton" onclick="shortenURL()">
 
-                    </div>
+                    <span>Shorten URL</span>
+                    <span class="arrow">→</span>
 
-                </form>
-
-
-                <div id="result" class="result hidden"></div>
+                </button>
 
             </div>
+
+
+            <div id="loading" class="loading hidden">
+                <div class="loader"></div>
+                <span>Generating your short link...</span>
+            </div>
+
+
+            <div id="result" class="result hidden"></div>
 
 
             <div class="features">
 
                 <div class="feature">
-                    <div class="feature-icon">⚡</div>
+
+                    <div class="feature-icon blue">
+                        ⚡
+                    </div>
+
                     <div>
                         <h3>Lightning Fast</h3>
                         <p>Create short links instantly.</p>
                     </div>
+
                 </div>
 
+
                 <div class="feature">
-                    <div class="feature-icon">🔒</div>
+
+                    <div class="feature-icon purple">
+                        🔒
+                    </div>
+
                     <div>
                         <h3>Simple & Secure</h3>
                         <p>Your URLs are safely stored.</p>
                     </div>
+
                 </div>
 
+
                 <div class="feature">
-                    <div class="feature-icon">↗</div>
+
+                    <div class="feature-icon pink">
+                        ↗
+                    </div>
+
                     <div>
                         <h3>Easy to Share</h3>
                         <p>Clean links for everywhere.</p>
                     </div>
+
                 </div>
 
             </div>
@@ -114,13 +148,15 @@
 
 
     <footer>
-        <p>
-            Built with <span>♥</span> using Flask & SQLite
-        </p>
 
-        <p class="copyright">
+        <div>
+            Built with <span>♥</span> using Flask & SQLite
+        </div>
+
+        <div>
             © 2026 Shortly
-        </p>
+        </div>
+
     </footer>
 
 

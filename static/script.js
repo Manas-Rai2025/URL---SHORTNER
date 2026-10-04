@@ -1,33 +1,38 @@
-const form = document.getElementById("urlForm");
-
-form.addEventListener("submit", function(event) {
-    event.preventDefault();
-    shortenURL();
-});
+const urlInput = document.getElementById("urlInput");
+const result = document.getElementById("result");
+const loading = document.getElementById("loading");
+const button = document.getElementById("shortenButton");
 
 async function shortenURL() {
 
-    const urlInput = document.getElementById("urlInput");
-    const result = document.getElementById("result");
-
     const url = urlInput.value.trim();
 
+    result.classList.add("hidden");
+
     if (!url) {
-        result.textContent = "Please enter a URL.";
-        result.style.color = "red";
+        showError("Please enter a URL.");
         return;
     }
 
-    result.textContent = "Generating short URL...";
-    result.style.color = "black";
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+        showError("Please enter a valid URL starting with http:// or https://");
+        return;
+    }
+
+    loading.classList.remove("hidden");
+
+    button.disabled = true;
+    button.style.opacity = "0.6";
 
     try {
 
         const response = await fetch("/shorten", {
             method: "POST",
+
             headers: {
                 "Content-Type": "application/json"
             },
+
             body: JSON.stringify({
                 url: url
             })
@@ -36,38 +41,97 @@ async function shortenURL() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.error || "Something went wrong");
+            throw new Error(
+                data.error || "Something went wrong."
+            );
         }
 
-        result.innerHTML = `
-            <p>Your Short URL:</p>
-
-            <div class="short-url-box">
-                <a href="${data.short_url}" target="_blank">
-                    ${data.short_url}
-                </a>
-
-                <button type="button" onclick="copyURL('${data.short_url}')">
-                    Copy
-                </button>
-            </div>
-        `;
-
-        result.style.color = "green";
+        showResult(data.short_url);
 
     } catch (error) {
 
-        console.error("Error:", error);
+        showError(error.message);
 
-        result.textContent = error.message;
-        result.style.color = "red";
+    } finally {
+
+        loading.classList.add("hidden");
+
+        button.disabled = false;
+        button.style.opacity = "1";
     }
 }
 
 
-function copyURL(url) {
+function showResult(shortUrl) {
 
-    navigator.clipboard.writeText(url);
+    result.classList.remove("hidden");
 
-    alert("Short URL copied!");
+    result.innerHTML = `
+        <div class="result-title">
+            ✓ YOUR SHORT LINK IS READY
+        </div>
+
+        <div class="result-row">
+
+            <a href="${shortUrl}" target="_blank">
+                ${shortUrl}
+            </a>
+
+            <button
+                class="copy-button"
+                onclick="copyURL('${shortUrl}')">
+                Copy
+            </button>
+
+        </div>
+    `;
 }
+
+
+function showError(message) {
+
+    result.classList.remove("hidden");
+
+    result.style.background =
+        "rgba(239,68,68,0.06)";
+
+    result.style.borderColor =
+        "rgba(239,68,68,0.2)";
+
+    result.innerHTML = `
+        <div style="color:#fca5a5;font-size:13px;">
+            ✕ ${message}
+        </div>
+    `;
+}
+
+
+async function copyURL(url) {
+
+    try {
+
+        await navigator.clipboard.writeText(url);
+
+        const button =
+            document.querySelector(".copy-button");
+
+        button.textContent = "Copied ✓";
+
+        setTimeout(() => {
+            button.textContent = "Copy";
+        }, 2000);
+
+    } catch (error) {
+
+        alert("Unable to copy the URL.");
+    }
+}
+
+
+urlInput.addEventListener("keydown", function(event) {
+
+    if (event.key === "Enter") {
+        shortenURL();
+    }
+
+});
