@@ -1,3 +1,10 @@
+const form = document.getElementById("urlForm");
+
+form.addEventListener("submit", function(event) {
+    event.preventDefault();
+    shortenURL();
+});
+
 async function shortenURL() {
     const urlInput = document.getElementById("urlInput");
     const result = document.getElementById("result");
